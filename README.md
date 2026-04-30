@@ -56,7 +56,12 @@ Python command — no shim needed. magicwand earns its keep at the
 bash level, not in Python land.
 
 Working example: [`examples/tier2-native-python/`](./examples/tier2-native-python/)
-(pysam VCF stats + Dockerfile).
+(pysam VCF stats + Dockerfile). The `running.*` and `progress.*`
+metrics it streams render as live line charts in W&B:
+
+<p align="center">
+  <img src="./docs/assets/wandb_demo.png" alt="W&B charts from the Tier 2 pysam demo" width="720" />
+</p>
 
 ## W&B mode
 
