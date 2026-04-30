@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "magicwand"
+version = "0.1.0"
+description = "Drop-in observability shim for WDL tasks, forwarded to Weights & Biases."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.9"
+authors = [{ name = "Broad Institute" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: System :: Monitoring",
+]
+dependencies = [
+    "wandb>=0.18,<0.22",
+    "psutil>=5.9",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.4",
+    "pytest-mock>=3.12",
+    "pytest-timeout>=2.2",
+]
+
+[project.scripts]
+magicwand-cli = "magicwand.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/broadinstitute/magicwand"
+Issues = "https://github.com/broadinstitute/magicwand/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["magicwand"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"magicwand/shell/traps.sh" = "magicwand/shell/traps.sh"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+timeout = 60

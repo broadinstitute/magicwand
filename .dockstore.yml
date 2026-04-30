@@ -1,0 +1,21 @@
+version: 1.2
+
+workflows:
+  - name: magicwand-tier0-dropin
+    subclass: WDL
+    primaryDescriptorPath: /examples/tier0-dropin.wdl
+    testParameterFiles:
+      - /examples/tier0-dropin.inputs.json
+    topic: Drop-in W&B observability shim — Tier 0 bcftools VCF demo.
+  - name: magicwand-tier1-with-parsers
+    subclass: WDL
+    primaryDescriptorPath: /examples/tier1-with-parsers.wdl
+    testParameterFiles:
+      - /examples/tier1-with-parsers.inputs.json
+    topic: Drop-in W&B observability shim — Tier 1 demo with bcftools-stats parser.
+  - name: magicwand-tier2-pysam-stats
+    subclass: WDL
+    primaryDescriptorPath: /examples/tier2-native-python/tier2-pysam-stats.wdl
+    testParameterFiles:
+      - /examples/tier2-native-python/tier2-pysam-stats.inputs.json
+    topic: Native-Python W&B observability — Tier 2 pysam VCF-stats demo with magicwand pre-baked into the docker image.

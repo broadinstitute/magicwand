@@ -1,0 +1,4 @@
+{
+  "magicwand_tier1_demo.vcf": "gs://gcp-public-data--gnomad/release/4.1.1/vcf/exomes/gnomad.exomes.v4.1.1.sites.chr22.vcf.bgz",
+  "magicwand_tier1_demo.min_af": 0.001
+}
