@@ -57,7 +57,11 @@ __mw_emit() {
     if [[ -z "${__MW_FIFO_FD:-}" ]]; then
         return 0
     fi
-    printf '%s\n' "$1" >&"$__MW_FIFO_FD" 2>/dev/null || true
+    # shellcheck disable=SC2261
+    # SC2261 false positive: 1>&"$__MW_FIFO_FD" redirects fd 1, 2>/dev/null
+    # redirects fd 2; they don't compete. The `|| true` swallows printf
+    # failures (closed fd, EPIPE) without spamming the user's stderr.
+    printf '%s\n' "$1" 1>&"$__MW_FIFO_FD" 2>/dev/null || true
 }
 
 # JSON-string-escape stdin. Avoids needing python/jq inside the trap.
@@ -125,7 +129,6 @@ __mw_exit_trap() {
     if [[ -n "${__MW_FINALIZED:-}" ]]; then
         return 0
     fi
-    __MW_FINALIZED=1
     __MW_DEPTH=1  # disable DEBUG during shutdown
 
     local _ts="$EPOCHREALTIME"
@@ -137,6 +140,11 @@ __mw_exit_trap() {
         __mw_emit "{\"event\":\"cmd_end\",\"ts\":$_ts,\"lineno\":${__MW_LAST_LINENO:-0},\"exit_code\":$_rc,\"command\":\"$_esc\"}"
     fi
     __mw_emit "{\"event\":\"finalize\",\"ts\":$_ts,\"exit_code\":$_rc}"
+
+    # Now silence subsequent emits (DEBUG/ERR traps that fire during the
+    # pidfile wait below). Must come AFTER the emits above so __mw_emit's
+    # __MW_FINALIZED short-circuit doesn't swallow our own finalize event.
+    __MW_FINALIZED=1
 
     # Wait for sidecar to flush. We watch for pidfile removal — the sidecar
     # unlinks its pidfile at the end of its `finally` block. `kill -0` is

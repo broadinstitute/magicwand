@@ -14,8 +14,8 @@ if [ "$OS" == "Darwin" ]; then
 elif [ "$OS" == "Linux" ] && [ "$ARCH" == "x86_64" ]; then
     docker_build="docker"
 else
-    echo "Unsupported os/arch (os="$OS", arch="$ARCH")"
-    exit -1
+    echo "Unsupported os/arch (os=$OS, arch=$ARCH)"
+    exit 1
 fi
 
 PUSH_TAG="us-docker.pkg.dev/broad-dsde-methods/magicwand/vcf-stats:$IMAGE_VERSION"
@@ -25,4 +25,4 @@ $docker_build build \
     -t "${PUSH_TAG}" \
     --platform linux/amd64 \
     --push \
-    $(pwd)
+    "$(pwd)"

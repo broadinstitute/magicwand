@@ -11,10 +11,11 @@ setup() {
     FIFO="$TMP/fifo"
     OUT="$TMP/out"
     mkfifo "$FIFO"
-    # Background reader: drains the FIFO into a flat file. Keep the FIFO
-    # opened for write on fd 9 in this shell so the reader doesn't EOF while
-    # the test is in flight.
-    exec 9>"$FIFO"
+    # Hold the FIFO open RDWR on fd 9 in this shell so (a) the open doesn't
+    # block waiting for a reader and (b) the backgrounded `cat` doesn't EOF
+    # while the test is in flight. `<>` is bash's read-write open and
+    # never blocks on a FIFO.
+    exec 9<>"$FIFO"
     cat "$FIFO" > "$OUT" &
     READER_PID=$!
     export MAGICWAND_FIFO="$FIFO"
