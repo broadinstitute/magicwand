@@ -122,6 +122,32 @@ if [[ -n "$__mw_user_base" ]]; then
     esac
 fi
 
+# ---- helpers ----
+# If WANDB_API_KEY is set to a gs:// URL, fetch the file via gcloud (or
+# gsutil) and replace the env var with its contents. The Cromwell GCP
+# task's service account auths the read, so the literal key never has
+# to land in workflow inputs or task logs. If the read fails for any
+# reason, emit a warning and fall back to offline mode — better a
+# clean degradation than a misleading 401 from wandb.
+__mw_resolve_wandb_api_key() {
+    local _url="$WANDB_API_KEY"
+    local _resolved=""
+    if command -v gcloud >/dev/null 2>&1; then
+        _resolved=$(gcloud storage cat "$_url" 2>/dev/null | tr -d '[:space:]' || true)
+    fi
+    if [[ -z "$_resolved" ]] && command -v gsutil >/dev/null 2>&1; then
+        _resolved=$(gsutil cat "$_url" 2>/dev/null | tr -d '[:space:]' || true)
+    fi
+    if [[ -n "$_resolved" ]]; then
+        export WANDB_API_KEY="$_resolved"
+        echo "magicwand: resolved WANDB_API_KEY from $_url" >&2
+    else
+        echo "magicwand: could not read WANDB_API_KEY from $_url; falling back to offline mode" >&2
+        unset WANDB_API_KEY
+        export WANDB_MODE=offline
+    fi
+}
+
 # ---- shell function ----
 # Wrap the CLI so `magicwand init` can eval its output into the current shell.
 # Other subcommands are passed through unchanged. We capture $$ at call time
@@ -130,6 +156,9 @@ magicwand() {
     case "${1:-}" in
         init)
             shift
+            if [[ "${WANDB_API_KEY:-}" == gs://* ]]; then
+                __mw_resolve_wandb_api_key
+            fi
             local _mw_snippet
             _mw_snippet="$(MAGICWAND_TASK_PID=$$ command magicwand-cli init "$@")" || {
                 echo "magicwand: init failed; W&B integration disabled" >&2

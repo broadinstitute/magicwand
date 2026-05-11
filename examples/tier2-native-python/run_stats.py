@@ -18,6 +18,9 @@ shell commands.
 from __future__ import annotations
 
 import argparse
+import os
+import subprocess
+import sys
 import time
 from collections import Counter
 from typing import Optional
@@ -28,6 +31,34 @@ import wandb
 
 _PURINES = {"A", "G"}
 _PYRIMIDINES = {"C", "T"}
+
+
+def _resolve_wandb_api_key() -> None:
+    """If WANDB_API_KEY is a gs:// URL, fetch the file (gcloud, then gsutil)
+    and replace the env var with its contents. The task's service account
+    auths the read, so the literal key never lands in workflow inputs.
+    On failure: warn and fall back to offline mode."""
+    key = os.environ.get("WANDB_API_KEY", "")
+    if not key.startswith("gs://"):
+        return
+    url = key
+    for cmd in (["gcloud", "storage", "cat", url], ["gsutil", "cat", url]):
+        try:
+            out = subprocess.check_output(
+                cmd, text=True, stderr=subprocess.DEVNULL
+            ).strip()
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            continue
+        if out:
+            os.environ["WANDB_API_KEY"] = out
+            print(f"magicwand: resolved WANDB_API_KEY from {url}", file=sys.stderr)
+            return
+    print(
+        f"magicwand: could not read WANDB_API_KEY from {url}; running W&B offline",
+        file=sys.stderr,
+    )
+    os.environ.pop("WANDB_API_KEY", None)
+    os.environ["WANDB_MODE"] = "offline"
 
 
 def is_transition(ref: str, alt: str) -> bool:
@@ -71,6 +102,8 @@ def main() -> None:
     parser.add_argument("--project", default="magicwand-vcf-stats",
                         help="W&B project name")
     args = parser.parse_args()
+
+    _resolve_wandb_api_key()
 
     r = wandb.init(
         project=args.project,

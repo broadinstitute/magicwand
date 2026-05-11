@@ -71,6 +71,14 @@ magicwand runs W&B offline — local files only; `wandb sync` later
 from a machine that has a key. (W&B deprecated anonymous accounts in
 Dec 2025, so there's no zero-config online path anymore.)
 
+`WANDB_API_KEY` may be set to a `gs://` URL instead of the literal
+key — magicwand resolves it via `gcloud storage cat` (falling back
+to `gsutil cat`) before passing the value to wandb. On Terra /
+Cromwell GCP the task's service account auths the read, so the key
+never has to land in your workflow inputs or task log. If the read
+fails for any reason, magicwand emits a warning and falls back to
+offline mode.
+
 ## Known limits
 
 | Scenario | Behavior |
