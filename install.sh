@@ -89,9 +89,11 @@ fi
 # required — pip handles .zip URLs natively). The PyPI name `magicwand`
 # is squatted by an unrelated 2017 package, so we cannot use it.
 __mw_git_ref="${MAGICWAND_GIT_REF:-main}"
-__mw_pkg_spec="https://github.com/broadinstitute/magicwand/archive/refs/heads/${__mw_git_ref}.zip"
+__mw_git_user="${MAGICWAND_GIT_USERNAME:-broadinstitute}"
+__mw_git_repo="${MAGICWAND_GIT_REPO_NAME:-magicwand}"
+__mw_pkg_spec="https://github.com/${__mw_git_user}/${__mw_git_repo}/archive/refs/heads/${__mw_git_ref}.zip"
 if [[ -n "$MAGICWAND_VERSION" ]]; then
-    __mw_pkg_spec="https://github.com/broadinstitute/magicwand/archive/refs/tags/v${MAGICWAND_VERSION}.zip"
+    __mw_pkg_spec="https://github.com/${__mw_git_user}/${__mw_git_repo}/archive/refs/tags/v${MAGICWAND_VERSION}.zip"
 fi
 
 # --break-system-packages is no-op outside PEP 668 environments but the
@@ -182,5 +184,5 @@ magicwand() {
     esac
 }
 
-unset __mw_uname __mw_python __mw_pkg_spec __mw_user_base __mw_install_strict
+unset __mw_uname __mw_python __mw_pkg_spec __mw_user_base __mw_install_strict __mw_git_user __mw_git_repo
 unset -f __mw_install_die __mw_python_ok 2>/dev/null || true
