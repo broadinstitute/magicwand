@@ -28,9 +28,16 @@ CROMWELL_RE = re.compile(
 #
 #   gs://<bucket>/submissions/<submission_uuid>/<workflow>/<workflow_uuid>
 #       /call-<task>/[shard-N/][attempt-M/]<filename>
+#
+# Or, if workspace lifecycle rules are enabled:
+#
+#   gs://<bucket>/submissions/intermediates/<submission_uuid>/<workflow>/<workflow_uuid>
+#       /call-<task>/[shard-N/][attempt-M/]<filename>
 GCS_DELOC_RE = re.compile(
     r"gs://(?P<bucket>[a-zA-Z0-9._\-]+)"
-    r"/submissions/(?P<sub>[0-9a-f-]{36})"
+    r"/submissions"
+    r"(?:/intermediates)?"
+    r"/(?P<sub>[0-9a-f-]{36})"
     r"/(?P<wf>[^/\s\"']+)"
     r"/(?P<wf_uuid>[0-9a-f-]{36})"
     r"/call-(?P<task>[^/\s\"']+)"

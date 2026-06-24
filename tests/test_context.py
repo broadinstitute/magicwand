@@ -82,6 +82,23 @@ delocalize_7bc801bf08f25fd169b91cdae825df76=(
 delocalize "${delocalize_7bc801bf08f25fd169b91cdae825df76[@]}"
 """
 
+GCS_INTERMEDIATES_DELOC_SCRIPT = """\
+source '/mnt/disks/cromwell_root/gcs_transfer.sh'
+timestamped_message 'Delocalization script execution started...'
+# fc-38264d1f-9676-44bd-80ea-2956d2acaa69
+delocalize_7bc801bf08f25fd169b91cdae825df76=(
+  "terra-1a086a2f"
+  "3"
+  "0"
+  "file"
+  "gs://fc-38264d1f-9676-44bd-80ea-2956d2acaa69/submissions/intermediates/10a9c218-1d7b-446c-aa23-b74ebb299dd0/magicwand_tier0_demo/76cddf99-ff07-4d3c-87ad-1b278cbbb774/call-vcf_quickstats/stats.txt"
+  "/mnt/disks/cromwell_root/stats.txt"
+  "required"
+  ""
+)
+delocalize "${delocalize_7bc801bf08f25fd169b91cdae825df76[@]}"
+"""
+
 
 def test_detect_cromwell_papiv2_via_delocalization(
     tmp_path: Path, monkeypatch, clean_wdl_env
@@ -90,6 +107,25 @@ def test_detect_cromwell_papiv2_via_delocalization(
     is recovered from gcs_delocalization.sh's gs:// upload paths."""
     deloc = tmp_path / "gcs_delocalization.sh"
     deloc.write_text(GCS_DELOC_SCRIPT)
+    ctx = context.detect(str(tmp_path))
+    assert ctx.engine == "cromwell"
+    assert ctx.workflow_name == "magicwand_tier0_demo"
+    assert ctx.workflow_uuid == "76cddf99-ff07-4d3c-87ad-1b278cbbb774"
+    assert ctx.task_name == "vcf_quickstats"
+    assert ctx.shard is None
+    assert ctx.attempt is None
+    assert ctx.run_name == "vcf_quickstats"
+    assert ctx.extras["submission_id"] == "10a9c218-1d7b-446c-aa23-b74ebb299dd0"
+    assert ctx.extras["workspace_bucket"] == "fc-38264d1f-9676-44bd-80ea-2956d2acaa69"
+    assert ctx.extras["backend"] == "papiv2"
+
+
+def test_detect_cromwell_papiv2_intermediates_via_delocalization(
+    tmp_path: Path, monkeypatch, clean_wdl_env
+):
+    """recover metadata from a Terra workspace with lifecycle rules enabled"""
+    deloc = tmp_path / "gcs_delocalization.sh"
+    deloc.write_text(GCS_INTERMEDIATES_DELOC_SCRIPT)
     ctx = context.detect(str(tmp_path))
     assert ctx.engine == "cromwell"
     assert ctx.workflow_name == "magicwand_tier0_demo"
